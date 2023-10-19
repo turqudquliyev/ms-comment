@@ -7,15 +7,16 @@ import az.ingress.exception.NotFoundException;
 import az.ingress.model.request.CreateCommentRequest;
 import az.ingress.model.request.UpdateCommentRequest;
 import az.ingress.model.response.CommentResponse;
-import az.ingress.model.response.PageableCommentResponse;
 import az.ingress.service.abstraction.CommentService;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 import static az.ingress.mapper.CommentMapper.COMMENT_MAPPER;
+import static az.ingress.model.enums.CommentStatus.DELETED;
+import static az.ingress.model.enums.CommentStatus.UPDATED;
 import static az.ingress.model.enums.ExceptionMessage.COMMENT_NOT_FOUND;
 import static lombok.AccessLevel.PRIVATE;
 
@@ -27,31 +28,33 @@ public class CommentServiceHandler implements CommentService {
     ProductClient productClient;
 
     public void createComment(Long userId, CreateCommentRequest request) {
-        productClient.checkStockAvailability(request.getProductId());
-        CommentEntity comment = COMMENT_MAPPER.mapRequestToEntity(userId, request);
+        productClient.getProductIfExist(request.getProductId());
+        var comment = COMMENT_MAPPER.mapRequestToEntity(userId, request);
         commentRepository.save(comment);
     }
 
     public CommentResponse getCommentById(Long id) {
-        CommentEntity comment = fetchIfExist(id);
+        var comment = fetchIfExist(id);
         return COMMENT_MAPPER.mapEntityToResponse(comment);
     }
 
-    public PageableCommentResponse getAllCommentByProductId(Long productId, Integer pageNumber, Integer pageSize) {
-        PageRequest pageable = PageRequest.of(pageNumber, pageSize);
-        Page<CommentEntity> comments = commentRepository.findAllCommentByProductIdOrderByCreatedAtDesc(productId, pageable);
-        return COMMENT_MAPPER.buildPageableCommentResponse(comments);
+    public List<CommentResponse> getAllCommentByProductId(Long productId) {
+        var comments = commentRepository.findAllCommentByProductIdOrderByCreatedAtDesc(productId);
+        return comments.stream().map(COMMENT_MAPPER::mapEntityToResponse).toList();
     }
 
+
     public void updateCommentById(Long id, UpdateCommentRequest request) {
-        CommentEntity comment = fetchIfExist(id);
+        var comment = fetchIfExist(id);
         comment.setMessage(request.getMessage());
+        comment.setStatus(UPDATED);
         commentRepository.save(comment);
     }
 
     public void deleteCommentById(Long id) {
-        CommentEntity comment = fetchIfExist(id);
-        commentRepository.delete(comment);
+        var comment = fetchIfExist(id);
+        comment.setStatus(DELETED);
+        commentRepository.save(comment);
     }
 
     private CommentEntity fetchIfExist(Long id) {

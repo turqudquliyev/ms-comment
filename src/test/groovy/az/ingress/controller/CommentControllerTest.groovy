@@ -4,12 +4,13 @@ import az.ingress.exception.GlobalExceptionHandler
 import az.ingress.model.request.CreateCommentRequest
 import az.ingress.model.request.UpdateCommentRequest
 import az.ingress.model.response.CommentResponse
-import az.ingress.model.response.PageableCommentResponse
 import az.ingress.service.abstraction.CommentService
 import org.skyscreamer.jsonassert.JSONAssert
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import spock.lang.Specification
+
+import java.time.LocalDateTime
 
 import static az.ingress.model.constant.HeaderConstant.USER_ID
 import static org.springframework.http.HttpStatus.*
@@ -46,7 +47,7 @@ class CommentControllerTest extends Specification {
         when:
         def jsonResponse = mockMvc.perform(post(url)
                 .contentType(APPLICATION_JSON)
-                .header(USER_ID, userId.toString())
+                .header(USER_ID, userId as String)
                 .content(jsonRequest)
         ).andReturn()
 
@@ -60,22 +61,24 @@ class CommentControllerTest extends Specification {
         def id = 1L
         def userId = 2L
         def url = "/v1/comments/$id"
+        def specificDateTime = LocalDateTime.of(2023, 10, 21, 12, 30)
         def commentResponse = new CommentResponse(
-                1L, 2L, 3L, "message"
+                1L, 2L, 3L, "message", specificDateTime
         )
         def expectedJsonResponse = '''
                                             {
                                               "id": 1,
                                               "userId": 2,
                                               "productId": 3,
-                                              "message": "message"
+                                              "message": "message",
+                                              "createdAt": "21.10.2023 12:30"
                                             }
                                       '''
 
         when:
         def jsonResponse = mockMvc.perform(get(url)
                 .contentType(APPLICATION_JSON)
-                .header(USER_ID, userId.toString())
+                .header(USER_ID, userId as String)
         ).andReturn()
 
         then:
@@ -84,43 +87,34 @@ class CommentControllerTest extends Specification {
         JSONAssert.assertEquals(jsonResponse.response.contentAsString.toString(), expectedJsonResponse.toString(), true)
     }
 
-    def "TestGetAllCommentByProductId"() {
+    def "TestGetAllCommentByProductId success case"() {
         given:
         def productId = 3L
         def url = "/v1/comments"
-        def pageNumber = 0
-        def pageSize = 10
-        def pageableCommentResponse = new PageableCommentResponse(
-                [new CommentResponse(
-                        1L, 2L, 3L, "message"
-                )], 0, 1, 2
+        def specificDateTime = LocalDateTime.of(2023, 10, 21, 12, 30)
+        def commentResponse = new CommentResponse(
+                1L, 2L, 3L, "message", specificDateTime
         )
         def expectedJsonResponse = '''
-                                                {
-                                                  "comments": [
-                                                    {
-                                                      "id": 1,
-                                                      "userId": 2,
-                                                      "productId": 3,
-                                                      "message": "message"
-                                                    }
-                                                  ],
-                                                  "currentPage": 0,
-                                                  "totalPages": 1,
-                                                  "totalItems": 2
-                                                }
-                                          '''
+                                            [
+                                            {
+                                              "id": 1,
+                                              "userId": 2,
+                                              "productId": 3,
+                                              "message": "message",
+                                              "createdAt": "21.10.2023 12:30"
+                                            }
+                                            ]
+                                      '''
 
         when:
         def jsonResponse = mockMvc.perform(get(url)
                 .contentType(APPLICATION_JSON)
-                .param("productId", productId.toString())
-                .param("pageNumber", pageNumber.toString())
-                .param("pageSize", pageSize.toString())
+                .param("productId", productId as String)
         ).andReturn()
 
         then:
-        1 * commentService.getAllCommentByProductId(productId, pageNumber, pageSize) >> pageableCommentResponse
+        1 * commentService.getAllCommentByProductId(productId) >> [commentResponse]
         jsonResponse.response.status == OK.value()
         JSONAssert.assertEquals(jsonResponse.response.contentAsString.toString(), expectedJsonResponse.toString(), true)
     }
