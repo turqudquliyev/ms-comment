@@ -1,0 +1,6 @@
+server:
+  port: 8080
+
+client:
+  urls:
+    ms-product: http://localhost:8888/internal/v1/products
