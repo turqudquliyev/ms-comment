@@ -1,22 +1,23 @@
 package az.ingress.dao.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import az.ingress.model.enums.CommentStatus;
+import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.Where;
 import org.hibernate.proxy.HibernateProxy;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
 
+import static jakarta.persistence.EnumType.STRING;
 import static jakarta.persistence.GenerationType.IDENTITY;
 import static lombok.AccessLevel.PRIVATE;
 
 @Entity
+@Where(clause = "status <> 'DELETED'")
 @Table(name = "comments")
 @NoArgsConstructor
 @AllArgsConstructor
@@ -32,6 +33,8 @@ public class CommentEntity {
     Long userId;
     Long productId;
     String message;
+    @Enumerated(STRING)
+    CommentStatus status;
     @CreationTimestamp
     LocalDateTime createdAt;
     @UpdateTimestamp

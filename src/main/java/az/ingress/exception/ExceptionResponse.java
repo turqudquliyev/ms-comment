@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
+import java.util.List;
+
 import static lombok.AccessLevel.PRIVATE;
 
 @NoArgsConstructor
@@ -15,4 +17,5 @@ import static lombok.AccessLevel.PRIVATE;
 @FieldDefaults(level = PRIVATE)
 public class ExceptionResponse {
     String code;
+    List<ValidationException> errors;
 }

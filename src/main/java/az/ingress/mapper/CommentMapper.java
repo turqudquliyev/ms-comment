@@ -3,20 +3,11 @@ package az.ingress.mapper;
 import az.ingress.dao.entity.CommentEntity;
 import az.ingress.model.request.CreateCommentRequest;
 import az.ingress.model.response.CommentResponse;
-import az.ingress.model.response.PageableCommentResponse;
-import org.springframework.data.domain.Page;
+
+import static az.ingress.model.enums.CommentStatus.CREATED;
 
 public enum CommentMapper {
     COMMENT_MAPPER;
-
-    public PageableCommentResponse buildPageableCommentResponse(Page<CommentEntity> comments) {
-        return PageableCommentResponse.builder()
-                .comments(comments.getContent().stream().map(this::mapEntityToResponse).toList())
-                .currentPage(comments.getNumber())
-                .totalPages(comments.getTotalPages())
-                .totalItems(comments.getTotalElements())
-                .build();
-    }
 
     public CommentEntity mapRequestToEntity(Long userId,
                                             CreateCommentRequest request) {
@@ -24,6 +15,7 @@ public enum CommentMapper {
                 .userId(userId)
                 .productId(request.getProductId())
                 .message(request.getMessage())
+                .status(CREATED)
                 .build();
     }
 
@@ -33,6 +25,7 @@ public enum CommentMapper {
                 .userId(entity.getUserId())
                 .productId(entity.getProductId())
                 .message(entity.getMessage())
+                .createdAt(entity.getCreatedAt())
                 .build();
     }
 }

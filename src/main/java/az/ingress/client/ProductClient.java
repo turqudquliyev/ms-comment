@@ -12,5 +12,5 @@ import org.springframework.web.bind.annotation.PathVariable;
         configuration = CustomErrorDecoder.class)
 public interface ProductClient {
     @GetMapping("/{id}")
-    void checkStockAvailability(@PathVariable Long id);
+    void getProductIfExist(@PathVariable Long id);
 }

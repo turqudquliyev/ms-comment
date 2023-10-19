@@ -4,31 +4,13 @@ import az.ingress.dao.entity.CommentEntity
 import az.ingress.model.request.CreateCommentRequest
 import io.github.benas.randombeans.EnhancedRandomBuilder
 import io.github.benas.randombeans.api.EnhancedRandom
-import org.springframework.data.domain.PageImpl
 import spock.lang.Specification
 
 import static az.ingress.mapper.CommentMapper.COMMENT_MAPPER
+import static az.ingress.model.enums.CommentStatus.CREATED
 
 class CommentMapperTest extends Specification {
     EnhancedRandom random = EnhancedRandomBuilder.aNewEnhancedRandom()
-
-    def "TestBuildPageableCommentResponse"() {
-        given:
-        def commentEntities = [random.nextObject(CommentEntity)]
-        def pageOfComments = new PageImpl(commentEntities)
-
-        when:
-        def pageableCommentResponse = COMMENT_MAPPER.buildPageableCommentResponse(pageOfComments)
-
-        then:
-        pageOfComments.content[0].id == pageableCommentResponse.comments[0].id
-        pageOfComments.content[0].userId == pageableCommentResponse.comments[0].userId
-        pageOfComments.content[0].productId == pageableCommentResponse.comments[0].productId
-        pageOfComments.content[0].message == pageableCommentResponse.comments[0].message
-        pageOfComments.number == pageableCommentResponse.currentPage
-        pageOfComments.totalPages == pageableCommentResponse.totalPages
-        pageOfComments.totalElements == pageableCommentResponse.totalItems
-    }
 
     def "TestMapRequestToEntity"() {
         given:
@@ -39,6 +21,7 @@ class CommentMapperTest extends Specification {
         def commentEntity = COMMENT_MAPPER.mapRequestToEntity(userId, commentRequest)
         then:
         userId == commentEntity.userId
+        CREATED == commentEntity.status
         commentRequest.productId == commentEntity.productId
         commentRequest.message == commentEntity.message
     }
@@ -55,5 +38,6 @@ class CommentMapperTest extends Specification {
         commentEntity.userId == commentResponse.userId
         commentEntity.productId == commentResponse.productId
         commentEntity.message == commentResponse.message
+        commentEntity.createdAt == commentResponse.createdAt
     }
 }

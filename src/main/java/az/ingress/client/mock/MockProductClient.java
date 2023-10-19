@@ -8,7 +8,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class MockProductClient implements ProductClient {
     @Override
-    public void checkStockAvailability(Long id) {
-
+    public void getProductIfExist(Long id) {
+        // TODO: this is mock implementation
+        System.out.println("Assume everything is ok");
     }
 }
